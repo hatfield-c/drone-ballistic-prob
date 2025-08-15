@@ -2,10 +2,11 @@ import argparse
 import time
 
 import CONFIG
-import BallisticGenerator
+import BezierGenerator
 import Trainer
 import PolyModel
 import DataLoader
+import VerifyData
 import Renderer
 
 def GetCliAction():
@@ -34,7 +35,7 @@ def Main():
 		action = actions["help"]
 
 	if action == actions["generate"]:
-		generator = BallisticGenerator.BallisticGenerator()
+		generator = BezierGenerator.BezierGenerator()
 		generator.Generate(CONFIG.sample_count)
 
 	if action == actions["train"]:
@@ -44,9 +45,9 @@ def Main():
 		trainer.Train(CONFIG.epochs)
 		model.Save(CONFIG.epochs)
 		
-	if action == actions["verify"]:
-		renderer = Renderer.Renderer()
-		renderer.Render()
+	if action == actions["verify_data"]:
+		data_verifier = VerifyData.VerifyData()
+		data_verifier.Verify()
 
 	if action == "help":
 		print("	Options:")
