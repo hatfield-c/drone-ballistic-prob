@@ -16,9 +16,6 @@ possible_actions_list = list(possible_actions.keys())
 low_p0 = torch.FloatTensor([-10, 2, 8])
 high_p0 = torch.FloatTensor([10, 4, 10])
 
-low_v = torch.FloatTensor([-5, -10, 0])
-high_v = torch.FloatTensor([5, 0, 5])
-
 low_k1 = torch.FloatTensor([-5, 8, -5])
 high_k1 = torch.FloatTensor([5, 15, 5])
 
@@ -34,8 +31,8 @@ high_mu = torch.FloatTensor([5, 5, 5]) * 0
 low_sigma = torch.FloatTensor([0.01, 0.01, 0.01]) * 0
 high_sigma = torch.FloatTensor([5, 5, 5]) * 0
 
-low = torch.cat((low_p0, low_v, low_k1, low_k2, low_k3, low_mu, low_sigma)).cuda()
-high = torch.cat((high_p0, high_v, high_k1, high_k2, high_k3, high_mu, high_sigma)).cuda()
+low = torch.cat((low_p0, low_k1, low_k2, low_k3, low_mu, low_sigma)).cuda()
+high = torch.cat((high_p0, high_k1, high_k2, high_k3, high_mu, high_sigma)).cuda()
 width = high - low
 
 sim_batch_count = 25

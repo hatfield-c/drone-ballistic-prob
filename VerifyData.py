@@ -25,22 +25,18 @@ class VerifyData:
 			v0_state = torch.zeros(p0_state.shape)
 			pv_state = torch.cat((p0_state, v0_state))
 			
-			ve_state = x[3:6]
-			ve_state = ve_state / (torch.linalg.norm(ve_state) + 0.00000001)
-			
-			k1 = x[6:9]
-			k2 = x[9:12]
-			k3 = x[12:15]
+			k1 = x[3:6]
+			k2 = x[6:9]
+			k3 = x[9:12]
 			k0 = torch.zeros(k1.shape)
 			k0[1] = 10
 			
-			mu = x[15:18]
-			sigma = x[18:21]
-			prob = x[21]
+			mu = x[12:15]
+			sigma = x[15:18]
+			prob = x[18]
 			
 			print("p0:", p0_state)
 			print("v0:", v0_state)
-			print("ve:", ve_state)
 			print("k0:", k0)
 			print("k1:", k1)
 			print("k2:", k2)

@@ -36,22 +36,22 @@ class BezierGenerator:
 			v0_states = torch.zeros(p0_states.shape).cuda()
 			pv_states = torch.cat((p0_states, v0_states), dim = 2)
 			
-			ve_states = init_states[:, 3:6].reshape(-1, 1, 3).repeat(1, CONFIG.wind_samples, 1)
-			ve_states = ve_states / (torch.linalg.norm(ve_states, dim = 2, keepdim = True) + 0.00000001)
-			
-			k1s = init_states[:, 6:9].reshape(-1, 1, 3).repeat(1, CONFIG.wind_samples, 1)
-			k2s = init_states[:, 9:12].reshape(-1, 1, 3).repeat(1, CONFIG.wind_samples, 1)
-			k3s = init_states[:, 12:15].reshape(-1, 1, 3).repeat(1, CONFIG.wind_samples, 1)
+			k1s = init_states[:, 3:6].reshape(-1, 1, 3).repeat(1, CONFIG.wind_samples, 1)
+			k2s = init_states[:, 6:9].reshape(-1, 1, 3).repeat(1, CONFIG.wind_samples, 1)
+			k3s = init_states[:, 9:12].reshape(-1, 1, 3).repeat(1, CONFIG.wind_samples, 1)
 			k0s = torch.zeros(k1s.shape).cuda()
 			k0s[:, :, 1] = 10
 			
-			mus = init_states[:, 15:18].reshape(-1, 1, 3).repeat(1, CONFIG.wind_samples, 1)
-			sigmas = init_states[:, 18:21].reshape(-1, 1, 3).repeat(1, CONFIG.wind_samples, 1)
+			mus = init_states[:, 12:15].reshape(-1, 1, 3).repeat(1, CONFIG.wind_samples, 1)
+			sigmas = init_states[:, 15:18].reshape(-1, 1, 3).repeat(1, CONFIG.wind_samples, 1)
 			
 			gravity = torch.zeros((pv_states.shape[0], 1, 3)).cuda()
 			gravity[:, 0, 1] = -9.8
 			rad_p = 1
 			rad_v = 0.7
+			end_v = torch.FloatTensor([0, -1, 1])
+			end_v = end_v / torch.linalg.norm(end_v)
+			end_v = end_v.reshape(1, 1, 3).cuda()
 			
 			hits = torch.zeros((pv_states.shape[0], CONFIG.wind_samples)).cuda()
 			
@@ -82,6 +82,9 @@ class BezierGenerator:
 				v_memory.append(pv_states[0, 0, 3:6].clone())
 				a_memory.append(acceleration[0, 0])
 				
+				# todo: don't count a hit if drone falls below 2 meters or if drone comes within 5 meters of target
+				# todo: only save positive samples
+				
 				s_signal = hits
 				if i >= CONFIG.flight_steps:
 					p_signal = pv_states[:, :, :3]
@@ -91,14 +94,14 @@ class BezierGenerator:
 					
 					v_signal = pv_states[:, :, 3:6]
 					v_signal = v_signal / (torch.linalg.norm(v_signal, dim = 2, keepdim = True) + 0.00000001)
-					v_signal = v_signal * ve_states
+					v_signal = v_signal * end_v
 					v_signal = torch.sum(v_signal, dim = 2)
 					v_signal = self.relu(v_signal)
 					v_signal = v_signal - rad_v
 					v_signal = self.relu(v_signal) / 1000
 					v_signal = torch.ceil(v_signal)
 					
-					s_signal = p_signal * v_signal
+					s_signal = p_signal# * v_signal
 				
 				hits = torch.maximum(s_signal, hits)
 				

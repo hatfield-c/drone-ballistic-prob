@@ -1,2 +1,2 @@
-# drone-bezier-prob
-[DBP] Drone Bezier Probability
+# drone-ballistic-prob
+[DBP] Drone Ballistic Probability
