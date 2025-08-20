@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 import CONFIG
 
-class BezierGenerator:
+class DataGenerator:
 	def __init__(self):
 		self.relu = torch.nn.ReLU()
 	
@@ -15,7 +15,7 @@ class BezierGenerator:
 		p_memory = None
 		v_memory = None
 		
-		print("[Bezier Thrust Probability Generator]")
+		print("[Ballistic Thrust Probability Generator]")
 		print("    Delta time:     :", CONFIG.delta_time)
 		print("    Flight steps    :", CONFIG.flight_steps)
 		print("    Ballistic steps :", CONFIG.ballistic_steps)
@@ -36,22 +36,14 @@ class BezierGenerator:
 			v0_states = torch.zeros(p0_states.shape).cuda()
 			pv_states = torch.cat((p0_states, v0_states), dim = 2)
 			
-			k1s = init_states[:, 3:6].reshape(-1, 1, 3).repeat(1, CONFIG.wind_samples, 1)
-			k2s = init_states[:, 6:9].reshape(-1, 1, 3).repeat(1, CONFIG.wind_samples, 1)
-			k3s = init_states[:, 9:12].reshape(-1, 1, 3).repeat(1, CONFIG.wind_samples, 1)
-			k0s = torch.zeros(k1s.shape).cuda()
-			k0s[:, :, 1] = 10
+			us = init_states[:, 3:6].reshape(-1, 1, 3).repeat(1, CONFIG.wind_samples, 1)
 			
-			mus = init_states[:, 12:15].reshape(-1, 1, 3).repeat(1, CONFIG.wind_samples, 1)
-			sigmas = init_states[:, 15:18].reshape(-1, 1, 3).repeat(1, CONFIG.wind_samples, 1)
+			mus = init_states[:, 6:9].reshape(-1, 1, 3).repeat(1, CONFIG.wind_samples, 1)
+			sigmas = init_states[:, 9:12].reshape(-1, 1, 3).repeat(1, CONFIG.wind_samples, 1)
 			
 			gravity = torch.zeros((pv_states.shape[0], 1, 3)).cuda()
 			gravity[:, 0, 1] = -9.8
 			rad_p = 1
-			rad_v = 0.7
-			end_v = torch.FloatTensor([0, -1, 1])
-			end_v = end_v / torch.linalg.norm(end_v)
-			end_v = end_v.reshape(1, 1, 3).cuda()
 			
 			hits = torch.zeros((pv_states.shape[0], CONFIG.wind_samples)).cuda()
 			
@@ -68,8 +60,7 @@ class BezierGenerator:
 				
 				thrust = torch.zeros(1, 1, 3).cuda()
 				if i < CONFIG.flight_steps:
-					t = i / (CONFIG.flight_steps - 1)
-					thrust = (((1 - t) ** 3) * k0s) + (t * k1s * (3 * ((1 - t) ** 2))) + (k2s * (3 * (1 - t) * (t ** 2))) + (k3s * (t ** 3))
+					thrust = us
 				
 				wind = torch.normal(mus, sigmas)
 				acceleration = gravity + wind + thrust
@@ -82,26 +73,22 @@ class BezierGenerator:
 				v_memory.append(pv_states[0, 0, 3:6].clone())
 				a_memory.append(acceleration[0, 0])
 				
-				# todo: don't count a hit if drone falls below 2 meters or if drone comes within 5 meters of target
-				# todo: only save positive samples
+				# wall collision with drone radius
+				w0_signal = pv_states[:, :, 1]
+				w1_signal = pv_states[:, :, 2]
+				w0_signal = self.relu(torch.abs(w0_signal - 3) - 3)
+				w1_signal = self.relu(torch.abs(w1_signal - (-5)) - 0.5 - 1)
+				w0_signal = torch.ceil(w0_signal / 1000)
+				w1_signal = torch.ceil(w1_signal / 1000)
 				
-				s_signal = hits
+				p_signal = hits
 				if i >= CONFIG.flight_steps:
 					p_signal = pv_states[:, :, :3]
 					p_signal = rad_p - torch.linalg.norm(p_signal, dim = 2)
 					p_signal = self.relu(p_signal) / 1000
 					p_signal = torch.ceil(p_signal)
 					
-					v_signal = pv_states[:, :, 3:6]
-					v_signal = v_signal / (torch.linalg.norm(v_signal, dim = 2, keepdim = True) + 0.00000001)
-					v_signal = v_signal * end_v
-					v_signal = torch.sum(v_signal, dim = 2)
-					v_signal = self.relu(v_signal)
-					v_signal = v_signal - rad_v
-					v_signal = self.relu(v_signal) / 1000
-					v_signal = torch.ceil(v_signal)
-					
-					s_signal = p_signal# * v_signal
+				s_signal = p_signal * w0_signal * w1_signal
 				
 				hits = torch.maximum(s_signal, hits)
 				

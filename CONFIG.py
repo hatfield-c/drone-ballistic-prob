@@ -13,17 +13,11 @@ possible_actions_list = list(possible_actions.keys())
 #	SIMULATION PARAMETERS
 ############################
 
-low_p0 = torch.FloatTensor([-10, 2, 8])
-high_p0 = torch.FloatTensor([10, 4, 10])
+low_p0 = torch.FloatTensor([-10, 2, -10])
+high_p0 = torch.FloatTensor([10, 4, -20])
 
-low_k1 = torch.FloatTensor([-5, 8, -5])
-high_k1 = torch.FloatTensor([5, 15, 5])
-
-low_k2 = torch.FloatTensor([-5, 8, -5])
-high_k2 = torch.FloatTensor([5, 15, 5])
-
-low_k3 = torch.FloatTensor([-5, 8, -5])
-high_k3 = torch.FloatTensor([5, 15, 5])
+low_u = torch.FloatTensor([-2, 10, 0])
+high_u = torch.FloatTensor([2, 20, 2])
 
 low_mu = torch.FloatTensor([-5, -5, -5]) * 0
 high_mu = torch.FloatTensor([5, 5, 5]) * 0
@@ -31,17 +25,17 @@ high_mu = torch.FloatTensor([5, 5, 5]) * 0
 low_sigma = torch.FloatTensor([0.01, 0.01, 0.01]) * 0
 high_sigma = torch.FloatTensor([5, 5, 5]) * 0
 
-low = torch.cat((low_p0, low_k1, low_k2, low_k3, low_mu, low_sigma)).cuda()
-high = torch.cat((high_p0, high_k1, high_k2, high_k3, high_mu, high_sigma)).cuda()
+low = torch.cat((low_p0, low_u, low_mu, low_sigma)).cuda()
+high = torch.cat((high_p0, high_u, high_mu, high_sigma)).cuda()
 width = high - low
 
 sim_batch_count = 25
-wind_samples = 1000
+wind_samples = 100
 sample_count = 10000#0
 total_samples = sample_count * sim_batch_count
 
-delta_time = 1 / 20
-flight_steps = math.ceil(2 / delta_time)
+delta_time = 1 / 60
+flight_steps = math.ceil(4 / delta_time)
 ballistic_steps = math.ceil(2 / delta_time)
 sim_steps = math.ceil(flight_steps + ballistic_steps)
 

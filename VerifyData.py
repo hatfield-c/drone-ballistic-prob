@@ -25,22 +25,15 @@ class VerifyData:
 			v0_state = torch.zeros(p0_state.shape)
 			pv_state = torch.cat((p0_state, v0_state))
 			
-			k1 = x[3:6]
-			k2 = x[6:9]
-			k3 = x[9:12]
-			k0 = torch.zeros(k1.shape)
-			k0[1] = 10
+			u = x[3:6]
 			
-			mu = x[12:15]
-			sigma = x[15:18]
-			prob = x[18]
+			mu = x[6:9]
+			sigma = x[9:12]
+			prob = x[12]
 			
 			print("p0:", p0_state)
 			print("v0:", v0_state)
-			print("k0:", k0)
-			print("k1:", k1)
-			print("k2:", k2)
-			print("k3:", k3)
+			print("k0:", u)
 			print("mu:", mu)
 			print("si:", sigma)
 			print("rp:", 1)
@@ -60,8 +53,7 @@ class VerifyData:
 				
 				thrust = torch.zeros(3)
 				if i < CONFIG.flight_steps:
-					t = i / (CONFIG.flight_steps - 1)
-					thrust = (((1 - t) ** 3) * k0) + (t * k1 * (3 * ((1 - t) ** 2))) + (k2 * (3 * (1 - t) * (t ** 2))) + (k3 * (t ** 3))
+					thrust = u
 				
 				wind = torch.normal(mu, sigma)
 				acceleration = gravity + wind + thrust
@@ -98,13 +90,18 @@ class VerifyData:
 		pc = p_m[[0]].T + cloud
 		
 		ax.plot(r0_m[:, 0], r0_m[:, 2], r0_m[:, 1], "b")
-		ax.plot(r1_m[:, 0], r1_m[:, 2], r1_m[:, 1], "m")
+		#ax.plot(r1_m[:, 0], r1_m[:, 2], r1_m[:, 1], "m")
+		ax.scatter(r1_m[:, 0], r1_m[:, 2], r1_m[:, 1], "m")
 		ax.plot(pc[0], pc[2], pc[1], "g")
 		
+		#goal
 		ax.bar3d([-0.5], [-0.5], [0], 1, 1, 1, color = np.array([1, 0, 0, 0.1]))
+
+		# wall		
+		ax.bar3d([-10], [-5.5], [0], [20], [1], [5], color = np.array([1, 1, 0, 0.3]))
 		
 		ax.set_xlim(-10, 10)
-		ax.set_ylim(-10, 10)
+		ax.set_ylim(-18, 2)
 		ax.set_zlim(0, 15)
 		
 		plt.show()

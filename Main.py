@@ -2,7 +2,7 @@ import argparse
 import time
 
 import CONFIG
-import BezierGenerator
+import DataGenerator
 import Trainer
 import PolyModel
 import DataLoader
@@ -35,7 +35,7 @@ def Main():
 		action = actions["help"]
 
 	if action == actions["generate"]:
-		generator = BezierGenerator.BezierGenerator()
+		generator = DataGenerator.DataGenerator()
 		generator.Generate(CONFIG.sample_count)
 
 	if action == actions["train"]:
