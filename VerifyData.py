@@ -11,13 +11,15 @@ class VerifyData:
 	def Verify(self):
 		data = torch.load(CONFIG.data_path)
 		print(data.shape)
-		data = data[data[:, -1] > 0.5]
+		data = data[data[:, -1] > 0.01]
 		print(data.shape)
+		
+		ps = data[:, :3]
 		
 		indices = torch.argsort(data[:, -1])
 		
-		for k in range(1, indices.shape[0] - 1):
-			verify_index = indices[-k]
+		for k in range(1, indices.shape[0] + 1):
+			verify_index = indices[k]
 			
 			x = data[verify_index]
 			
@@ -30,14 +32,12 @@ class VerifyData:
 			mu = x[6:9]
 			sigma = x[9:12]
 			prob = x[12]
+			max_speed = 0
 			
 			print("p0:", p0_state)
-			print("v0:", v0_state)
 			print("k0:", u)
 			print("mu:", mu)
 			print("si:", sigma)
-			print("rp:", 1)
-			print("rv:", 0.7)
 			print("prob:", prob)
 			
 			gravity = torch.zeros((3,))
@@ -61,14 +61,19 @@ class VerifyData:
 				pv_state[:3] += pv_state[3:6] * CONFIG.delta_time
 				pv_state[3:6] += acceleration * CONFIG.delta_time
 				
+				speed = torch.linalg.norm(pv_state[3:6])
+				if speed > max_speed:
+					max_speed = speed
+				
 				thrust_memory.append(thrust)
 				p_memory.append(pv_state[:3].clone())
 				v_memory.append(pv_state[3:6].clone())
 				a_memory.append(acceleration.clone())
 				
-			self.Render(thrust_memory, p_memory, v_memory, a_memory)
+			print("max speed:", max_speed)
+			self.Render(thrust_memory, p_memory, v_memory, a_memory, ps)
 		
-	def Render(self, t_m, p_m, v_m, a_m):
+	def Render(self, t_m, p_m, v_m, a_m, ps):
 		
 		t_m = torch.stack(t_m)
 		p_m = torch.stack(p_m)
@@ -83,15 +88,15 @@ class VerifyData:
 		fig = plt.figure()
 		ax = fig.add_subplot(projection = "3d")
 		
-		r0_m = p_m[:-CONFIG.ballistic_steps]
-		r1_m = p_m[CONFIG.ballistic_steps:]
+		r0_m = p_m[:CONFIG.flight_steps]
+		r1_m = p_m[CONFIG.flight_steps:]
 		
 		cloud = np.array([[-0.1, -0.1, .1, .1], [-0.1, .1, -0.1, .1], [-0.1, .1, .1, -0.1]])
 		pc = p_m[[0]].T + cloud
 		
-		ax.plot(r0_m[:, 0], r0_m[:, 2], r0_m[:, 1], "b")
-		#ax.plot(r1_m[:, 0], r1_m[:, 2], r1_m[:, 1], "m")
-		ax.scatter(r1_m[:, 0], r1_m[:, 2], r1_m[:, 1], "m")
+		ax.scatter(ps[:, 0], ps[:, 2], ps[:, 1])
+		ax.scatter(r0_m[:, 0], r0_m[:, 2], r0_m[:, 1], c = "b")
+		ax.scatter(r1_m[:, 0], r1_m[:, 2], r1_m[:, 1], c = "m")
 		ax.plot(pc[0], pc[2], pc[1], "g")
 		
 		#goal
@@ -100,8 +105,8 @@ class VerifyData:
 		# wall		
 		ax.bar3d([-10], [-5.5], [0], [20], [1], [5], color = np.array([1, 1, 0, 0.3]))
 		
-		ax.set_xlim(-10, 10)
-		ax.set_ylim(-18, 2)
-		ax.set_zlim(0, 15)
+		ax.set_xlim(-11, 11)
+		ax.set_ylim(-20, 2)
+		ax.set_zlim(0, 17)
 		
 		plt.show()

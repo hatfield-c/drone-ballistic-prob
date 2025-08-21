@@ -16,26 +16,26 @@ possible_actions_list = list(possible_actions.keys())
 low_p0 = torch.FloatTensor([-10, 2, -10])
 high_p0 = torch.FloatTensor([10, 4, -20])
 
-low_u = torch.FloatTensor([-2, 10, 0])
-high_u = torch.FloatTensor([2, 20, 2])
+low_u = torch.FloatTensor([-3, 10, 0])
+high_u = torch.FloatTensor([3, 40, 3])
 
-low_mu = torch.FloatTensor([-5, -5, -5]) * 0
-high_mu = torch.FloatTensor([5, 5, 5]) * 0
+low_mu = torch.FloatTensor([-5, -5, -5])
+high_mu = torch.FloatTensor([5, 5, 5])
 
-low_sigma = torch.FloatTensor([0.01, 0.01, 0.01]) * 0
-high_sigma = torch.FloatTensor([5, 5, 5]) * 0
+low_sigma = torch.FloatTensor([0.01, 0.01, 0.01])
+high_sigma = torch.FloatTensor([3, 3, 3])
 
 low = torch.cat((low_p0, low_u, low_mu, low_sigma)).cuda()
 high = torch.cat((high_p0, high_u, high_mu, high_sigma)).cuda()
 width = high - low
 
-sim_batch_count = 25
-wind_samples = 100
-sample_count = 10000#0
+sim_batch_count = 100
+wind_samples = 500
+sample_count = 100000
 total_samples = sample_count * sim_batch_count
 
-delta_time = 1 / 60
-flight_steps = math.ceil(4 / delta_time)
+delta_time = 1 / 20
+flight_steps = math.ceil(1 / delta_time)
 ballistic_steps = math.ceil(2 / delta_time)
 sim_steps = math.ceil(flight_steps + ballistic_steps)
 

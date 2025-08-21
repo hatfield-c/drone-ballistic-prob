@@ -46,14 +46,11 @@ class DataGenerator:
 			rad_p = 1
 			
 			hits = torch.zeros((pv_states.shape[0], CONFIG.wind_samples)).cuda()
+			w_signal = torch.ones((pv_states.shape[0], CONFIG.wind_samples)).cuda()
 			
 			print("    Simulating...")
 			print("        ", end = "")
 			
-			thrust_memory = []
-			p_memory = []
-			v_memory = []
-			a_memory = []
 			for i in range(CONFIG.sim_steps):
 				if i % (CONFIG.sim_steps // 10) == 0:
 					print(str(i) + ", ", end = "")
@@ -68,18 +65,16 @@ class DataGenerator:
 				pv_states[:, :, :3] += pv_states[:, :, 3:6] * CONFIG.delta_time
 				pv_states[:, :, 3:6] += acceleration * CONFIG.delta_time
 				
-				thrust_memory.append(thrust[0, 0])
-				p_memory.append(pv_states[0, 0, :3].clone())
-				v_memory.append(pv_states[0, 0, 3:6].clone())
-				a_memory.append(acceleration[0, 0])
-				
-				# wall collision with drone radius
+				# wall collision with padding
 				w0_signal = pv_states[:, :, 1]
 				w1_signal = pv_states[:, :, 2]
 				w0_signal = self.relu(torch.abs(w0_signal - 3) - 3)
-				w1_signal = self.relu(torch.abs(w1_signal - (-5)) - 0.5 - 1)
+				w1_signal = self.relu(torch.abs(w1_signal - (-5)) - 1.5)
 				w0_signal = torch.ceil(w0_signal / 1000)
 				w1_signal = torch.ceil(w1_signal / 1000)
+				
+				ws = torch.maximum(w0_signal, w1_signal)
+				w_signal = torch.minimum(w_signal, ws)
 				
 				p_signal = hits
 				if i >= CONFIG.flight_steps:
@@ -87,10 +82,11 @@ class DataGenerator:
 					p_signal = rad_p - torch.linalg.norm(p_signal, dim = 2)
 					p_signal = self.relu(p_signal) / 1000
 					p_signal = torch.ceil(p_signal)
-					
-				s_signal = p_signal * w0_signal * w1_signal
 				
-				hits = torch.maximum(s_signal, hits)
+				hit_signal = p_signal	
+				
+				hits = torch.maximum(hit_signal, hits)
+				hits = torch.minimum(w_signal, hits)
 				
 			probs = torch.sum(hits, dim = 1) / CONFIG.wind_samples
 			probs = probs.reshape(-1, 1)
