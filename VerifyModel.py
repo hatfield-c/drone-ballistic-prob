@@ -1,7 +1,7 @@
 import torch
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.widgets import Button, Slider
+from matplotlib.widgets import Button, Slider, TextBox
 
 import CONFIG
 import RadialModel
@@ -113,6 +113,12 @@ class VerifyModel:
 		    valinit = sigma[2].cpu(),
 		)
 		
+		self.ax_ut = self.fig.add_axes([0.4, 0.9, 0.3, 0.05])
+		self.u_text = TextBox(self.ax_ut, "u")
+		
+		self.ax_vt = self.fig.add_axes([0.4, 0.84, 0.3, 0.05])
+		self.v_text = TextBox(self.ax_vt, "v")
+		
 		self.px_slider.on_changed(self.UpdateGraph)
 		self.py_slider.on_changed(self.UpdateGraph)
 		self.pz_slider.on_changed(self.UpdateGraph)
@@ -146,6 +152,7 @@ class VerifyModel:
 		gravity = torch.zeros((3,))
 		gravity[1] = -9.8
 		
+		max_speed = 0
 		thrust_memory = []
 		p_memory = []
 		v_memory = []
@@ -162,11 +169,21 @@ class VerifyModel:
 			pv_state[:3] += pv_state[3:6] * CONFIG.delta_time
 			pv_state[3:6] += acceleration * CONFIG.delta_time
 			
+			speed = torch.linalg.norm(pv_state[[3, 5]])
+			if speed > max_speed:
+				max_speed = speed
+			
 			thrust_memory.append(thrust)
 			p_memory.append(pv_state[:3].clone())
 			v_memory.append(pv_state[3:6].clone())
 			a_memory.append(acceleration.clone())
-			
+		
+		u_str = "[{:.2f}, {:.2f}, {:.2f}]".format(u[0].item(), u[1].item(), u[2].item())
+		self.u_text.set_val(u_str)	
+		
+		v_str = "{:.2f}".format(max_speed)
+		self.v_text.set_val(v_str)	
+		
 		self.Render(thrust_memory, p_memory, v_memory, a_memory)
 		
 	def Render(self, t_m, p_m, v_m, a_m):

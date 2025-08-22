@@ -8,27 +8,19 @@ class DataGenerator:
 	def __init__(self):
 		self.relu = torch.nn.ReLU()
 	
-	def Generate(self, batch_size):
-		data = []
-		
-		thrust_memory = None
-		p_memory = None
-		v_memory = None
+	def Generate(self):
+		data = torch.zeros(1, CONFIG.low.shape[0] + 1)
 		
 		print("[Ballistic Thrust Probability Generator]")
 		print("    Delta time:     :", CONFIG.delta_time)
 		print("    Flight steps    :", CONFIG.flight_steps)
 		print("    Ballistic steps :", CONFIG.ballistic_steps)
-		print("    Sim steps       :", CONFIG.sim_steps)
-		print("    Sim batch count :", CONFIG.sim_batch_count)
-		print("    Sim batch size  :", CONFIG.sample_count)
-		print("    Total samples   :", CONFIG.total_samples)
 		print("")
 		
-		for i in range(CONFIG.sim_batch_count):
-			print("Batch", i)
-			print("    Building init states...")
-			init_states = torch.rand((batch_size, CONFIG.low.shape[0])).cuda()
+		print_count  = 0
+		
+		while data.shape[0] < CONFIG.sample_count:
+			init_states = torch.rand((CONFIG.sim_batch_size, CONFIG.low.shape[0])).cuda()
 			init_states = init_states * CONFIG.width.reshape(1, -1)
 			init_states += CONFIG.low.reshape(1, -1)
 			
@@ -48,12 +40,7 @@ class DataGenerator:
 			hits = torch.zeros((pv_states.shape[0], CONFIG.wind_samples)).cuda()
 			w_signal = torch.ones((pv_states.shape[0], CONFIG.wind_samples)).cuda()
 			
-			print("    Simulating...")
-			print("        ", end = "")
-			
 			for i in range(CONFIG.sim_steps):
-				if i % (CONFIG.sim_steps // 10) == 0:
-					print(str(i) + ", ", end = "")
 				
 				thrust = torch.zeros(1, 1, 3).cuda()
 				if i < CONFIG.flight_steps:
@@ -91,15 +78,21 @@ class DataGenerator:
 			probs = torch.sum(hits, dim = 1) / CONFIG.wind_samples
 			probs = probs.reshape(-1, 1)
 			
-			print("\n    Hits:", torch.sum(torch.max(hits, dim = 1).values).cpu().item())
-			print("    Compiling batch...")
+			if print_count >= 10:
+				print("Samples:", data.shape[0])
+				print_count = 0
+			print_count += 1
+				
+			#print("    Hits:", torch.sum(torch.max(hits, dim = 1).values).cpu().item())
 			batch_data = torch.cat((init_states, probs), dim = 1).cpu()
-			data.append(batch_data)
+			batch_data = batch_data[batch_data[:, -1] > 0]
 			
-		print("Compiling all...")
-		data = torch.cat(data, dim = 0)
-		print("    Final shape:", data.shape)
+			if batch_data.shape[0] < 1:
+				continue
+			
+			data = torch.cat((data, batch_data))
 
+		print("    Final shape:", data.shape)
 		print("Saving...")
 		torch.save(data, CONFIG.data_path)
 		

@@ -27,6 +27,7 @@ class RadialModel(torch.nn.Module):
 		
 		out = -torch.square(u_data - out)
 		out = out / (2 * self.sigs)
+		out = torch.sum(out, dim = 1, keepdim = True) / 3
 		out = torch.exp(out)
 		
 		return out

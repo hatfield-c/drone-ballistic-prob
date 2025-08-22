@@ -37,7 +37,7 @@ def Main():
 
 	if action == actions["generate"]:
 		generator = DataGenerator.DataGenerator()
-		generator.Generate(CONFIG.sample_count)
+		generator.Generate()
 
 	if action == actions["train"]:
 		
