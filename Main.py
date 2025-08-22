@@ -4,10 +4,11 @@ import time
 import CONFIG
 import DataGenerator
 import Trainer
-import PolyModel
+import RadialModel
+import DirectModel
 import DataLoader
 import VerifyData
-import Renderer
+import VerifyModel
 
 def GetCliAction():
 	print("")
@@ -39,7 +40,11 @@ def Main():
 		generator.Generate(CONFIG.sample_count)
 
 	if action == actions["train"]:
-		model = PolyModel.PolyModel()
+		
+		model = RadialModel.RadialModel()
+		if not CONFIG.is_radial:
+			model = DirectModel.DirectModel()
+		
 		data_loader = DataLoader.DataLoader()
 		trainer = Trainer.Trainer(model, data_loader)
 		trainer.Train(CONFIG.epochs)
@@ -48,6 +53,10 @@ def Main():
 	if action == actions["verify_data"]:
 		data_verifier = VerifyData.VerifyData()
 		data_verifier.Verify()
+
+	if action == actions["verify_model"]:
+		model_verifier = VerifyModel.VerifyModel()
+		model_verifier.Verify()
 
 	if action == "help":
 		print("	Options:")

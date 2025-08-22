@@ -11,7 +11,7 @@ class VerifyData:
 	def Verify(self):
 		data = torch.load(CONFIG.data_path)
 		print(data.shape)
-		data = data[data[:, -1] > 0.01]
+		data = data[data[:, -1] > 0.1]
 		print(data.shape)
 		
 		ps = data[:, :3]

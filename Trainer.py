@@ -47,12 +47,6 @@ class Trainer:
 			
 			self.PrintUpdate(epochs, e, avg_time, loss)
 
-			#if(True and e % CONFIG.print_every_epoch == 0):
-				#img = data_loader.RenderModelImage(model)
-				#cv2.imshow("model render", img)
-				#cv2.waitKey(0)
-				#cv2.destroyAllWindows()
-
 			avg_time = (avg_time + (time.time() - start_time)) / 2
 
 		print("\nCompleted in", int((time.time() - start_total) / 60), "minutes.")

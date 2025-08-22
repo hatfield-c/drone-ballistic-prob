@@ -6,6 +6,7 @@ possible_actions = {
 	"generate": "generate",
 	"train": "train",
 	"verify_data": "verify_data",
+	"verify_model": "verify_model",
 }
 possible_actions_list = list(possible_actions.keys())
 
@@ -13,8 +14,8 @@ possible_actions_list = list(possible_actions.keys())
 #	SIMULATION PARAMETERS
 ############################
 
-low_p0 = torch.FloatTensor([-10, 2, -10])
-high_p0 = torch.FloatTensor([10, 4, -20])
+low_p0 = torch.FloatTensor([-10, 2, -20])
+high_p0 = torch.FloatTensor([10, 4, -10])
 
 low_u = torch.FloatTensor([-3, 10, 0])
 high_u = torch.FloatTensor([3, 40, 3])
@@ -45,17 +46,21 @@ data_path = "data/sim/train_data_" + str(total_samples) + ".float"
 #	NEURAL PARAMETERS
 ############################
 
+is_radial = True
+
 state_size = low.shape[0] + 1
 input_size = low.shape[0]
 
-output_size = 1
+output_size = 3 * 1
 h_count = 256
 
-epochs = 100000
+epochs = 20000
 learning_rate = 1e-3
-batch_size = 1024
+batch_size = 64
 
-print_every_epoch = 10000
+print_every_epoch = 2000
 
-model_path = "data/models/hitpoly.pt"
+model_path = "data/models/radial.pt"
+if not is_radial:
+	model_path = "data/models/direct.pt"
 
