@@ -13,6 +13,7 @@ class VerifyData:
 		print(data.shape)
 		data = data[data[:, -1] > 0]
 		print(data.shape)
+		data = data[:2000]
 		
 		ps = data[:, :3]
 		

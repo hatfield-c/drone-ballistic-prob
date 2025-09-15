@@ -22,7 +22,6 @@ class DirectModel(torch.nn.Module):
 	def forward(self, data):
 		
 		in_data = data[:, [0, 1, 2, 6, 7, 8, 9, 10, 11]]
-		u_data = data[:, 3:6]
 		out = self.Inference(in_data)
 		
 		return out
@@ -39,22 +38,13 @@ class DirectModel(torch.nn.Module):
 		
 		return out
 	
-	def Save(self, epoch):
-
-		filename = "polyfield_" + str(epoch) + ".pt"
-		save_path = CONFIG.model_path# + filename
-
+	def Save(self, save_path):
 		torch.save(self.state_dict(), save_path)
 
 		print("\nSaved model to", save_path)
 
-	def Load(self, epoch):
-		filename = "polyfield_" + str(epoch) + ".pt"
-		save_path = CONFIG.model_path# + filename
-
-		self.load_state_dict(torch.load(save_path))
+	def Load(self, load_path):
+		self.load_state_dict(torch.load(load_path))
 		self.eval()
 
-		print("\nLoaded model from", save_path)
-
-	
+		print("\nLoaded model from", load_path)

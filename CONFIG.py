@@ -7,6 +7,8 @@ possible_actions = {
 	"train": "train",
 	"verify_data": "verify_data",
 	"verify_model": "verify_model",
+	"plot_metrics": "plot_metrics",
+	"heatmaps": "heatmaps"
 }
 possible_actions_list = list(possible_actions.keys())
 
@@ -30,7 +32,7 @@ low = torch.cat((low_p0, low_u, low_mu, low_sigma)).cuda()
 high = torch.cat((high_p0, high_u, high_mu, high_sigma)).cuda()
 width = high - low
 
-sample_count = 10000
+sample_count = 100000
 wind_samples = 500
 sim_batch_size = 50000
 #total_samples = sample_count * sim_batch_count
@@ -40,7 +42,8 @@ flight_steps = math.ceil(1 / delta_time)
 ballistic_steps = math.ceil(2 / delta_time)
 sim_steps = math.ceil(flight_steps + ballistic_steps)
 
-data_path = "data/sim/train_data.float"
+data_path = "data/sim/train_data_100000.float"
+verify_data_path = "data/sim/verify_data_100000.float"
 
 ############################
 #	NEURAL PARAMETERS
@@ -60,7 +63,7 @@ batch_size = 1024
 
 print_every_epoch = 2000
 
-model_path = "data/models/radial.pt"
+model_path = "data/models/radial_1000.pt"
 if not is_radial:
-	model_path = "data/models/direct.pt"
+	model_path = "data/models/direct_1000.pt"
 

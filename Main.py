@@ -9,6 +9,7 @@ import DirectModel
 import DataLoader
 import VerifyData
 import VerifyModel
+import PlotMetrics
 
 def GetCliAction():
 	print("")
@@ -48,7 +49,7 @@ def Main():
 		data_loader = DataLoader.DataLoader()
 		trainer = Trainer.Trainer(model, data_loader)
 		trainer.Train(CONFIG.epochs)
-		model.Save(CONFIG.epochs)
+		model.Save(CONFIG.model_path)
 		
 	if action == actions["verify_data"]:
 		data_verifier = VerifyData.VerifyData()
@@ -57,13 +58,16 @@ def Main():
 	if action == actions["verify_model"]:
 		model_verifier = VerifyModel.VerifyModel()
 		model_verifier.Verify()
+		
+	if action == actions["plot_metrics"]:
+		plotter = PlotMetrics.PlotMetrics()
+		plotter.Plot()
+		
+	if action == actions["heatmaps"]:
+		pass
 
 	if action == "help":
-		print("	Options:")
-		print("		help")
-		print("		train")
-		print("		verify")
-
+		print("	Options:", list(actions.keys()))
 
 	runtime = time.time() - start_time
 	runtime = "{:.2f}".format(runtime)

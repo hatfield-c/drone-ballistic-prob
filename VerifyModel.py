@@ -21,7 +21,7 @@ class VerifyModel:
 		if not CONFIG.is_radial:
 			self.model = DirectModel.DirectModel()
 		
-		self.model.Load(CONFIG.epochs)
+		self.model.Load(CONFIG.model_path)
 		
 		indices = torch.argsort(data[:, -1])
 
@@ -210,7 +210,7 @@ class VerifyModel:
 		self.ax.plot(pc[0], pc[2], pc[1], "g")
 		
 		#goal
-		self.ax.bar3d([-0.5], [-0.5], [0], 1, 1, 1, color = np.array([1, 0, 0, 0.1]))
+		self.ax.bar3d([-0.5], [-0.5], [0], 1, 1, 1, color = np.array([1, 0, 0, 0.3]))
 
 		# wall		
 		self.ax.bar3d([-10], [-5.5], [0], [20], [1], [5], color = np.array([1, 1, 0, 0.3]))
